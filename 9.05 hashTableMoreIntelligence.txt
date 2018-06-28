@@ -1,0 +1,165 @@
+#include <stdio.h>
+#include <iostream>
+using namespace std;
+
+
+template <class T>
+class hashTable {
+public:
+    virtual bool find(const T &x)const =0;
+    virtual bool insert(const T &x)=0;
+    virtual bool remove(const T &x)=0;
+    //protected:
+    //    int (*key)(const T &x);
+    //    static int defaultKey(const int &k){return k;}
+    //
+};
+
+
+template <class T>
+class closeHashTable:public hashTable<T> {
+    struct node{
+        T data;
+        int state=0;   //0-empty;   1-active;   2-deleted;
+    };
+    node *array;
+    int size;
+    int load=0;
+    int deleted=0;
+    int maxNumberOfDeleted;
+    void doublespace();
+    
+public:
+    closeHashTable(int length=99,int MaxNumberOfDeleted=55,int (*f)(const T &x)=defaultKey);
+    ~closeHashTable(){delete []array;}
+    bool find(const T &x)const;
+    bool insert(const T &x);
+    bool remove(const T &x);
+    void rehash();
+protected:
+    int (*key)(const T &x);
+    static int defaultKey(const int &k){return k;}
+    
+};
+
+template <class T>
+closeHashTable<T>::closeHashTable(int length,int MaxNumberOfDeleted,int (*f)(const T &x)) {
+    size=length;
+    maxNumberOfDeleted=MaxNumberOfDeleted;
+    array=new node[size];
+    key=f;
+}
+
+template <class T>
+bool closeHashTable<T>::insert(const T &x) {
+    int initPos=key(x)%size;
+    int pos=initPos;
+    do {
+        if (array[pos].state!=1) {
+            array[pos].data=x;
+            array[pos].state=1;
+            load++;
+            if (load*2>size) {
+                doublespace();
+            }
+            return 1;
+        }
+        if (array[pos].state==1&&array[pos].data==x) {
+            return 0;
+        }
+        pos++;
+        pos%=size;
+    } while (pos!=initPos);
+    
+    return 0;
+}
+
+
+template <class T>
+bool closeHashTable<T>::find(const T &x)const {
+    int initPos=key(x)%size;
+    int pos=initPos;
+    do {
+        if (array[pos].state==0) {
+            return 0;
+        }
+        else if(array[pos].state==1&&array[pos].data==x){
+            return 1;
+        }
+        pos++;
+        pos%=size;
+    } while (pos!=initPos);
+    return 0;
+}
+
+template <class T>
+bool closeHashTable<T>::remove(const T &x) {
+    int initPos=key(x)%size;
+    int pos=initPos;
+    do {
+        if (array[pos].state==0) {
+            return 0;
+        }
+        else if (array[pos].data==x&&array[pos].state==1) {
+            array[pos].state=2;
+            load--;
+            deleted++;
+            if (deleted>maxNumberOfDeleted) {
+                rehash();
+                cout<<"clear"<<endl;
+            }
+            return 1;
+        }
+        pos++;
+        pos%=size;
+    } while (pos!=initPos);
+    return 0;
+}
+
+template <class T>
+void closeHashTable<T>::rehash() {
+    node *temp=array;
+    load=0;
+    deleted=0;
+    array=new node[size];
+    for (int i=0; i<size; i++) {
+        if (temp[i].state==1) {
+            insert(temp[i].data);
+        }
+    }
+    delete []temp;
+}
+
+template <class T>
+void closeHashTable<T>::doublespace() {
+    node *temp=array;
+    load=0;
+    deleted=0;
+    int oldsize=size;
+    size*=2;
+    array=new node[size];
+    for (int i=0; i<oldsize; i++) {
+        if (temp[i].state==1) {
+            insert(temp[i].data);
+        }
+    }
+    cout<<"doublespace"<<endl;
+    delete []temp;
+    //There shoule be a new hash function, or doublespace is meanless.
+}
+
+int main(){
+    closeHashTable<int> test(9,3);
+    test.insert(1);
+    test.insert(2);
+    test.insert(3);
+    test.insert(4);
+    test.insert(5);
+    test.insert(6);
+    test.remove(1);
+    test.remove(2);
+    test.remove(3);
+    test.remove(4);
+    
+    return 0;
+}

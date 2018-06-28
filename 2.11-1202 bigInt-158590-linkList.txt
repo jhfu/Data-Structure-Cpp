@@ -1,0 +1,222 @@
+/*code is far away from bug with the animal protecting
+ * ┏┓　　　┏┓
+ *┏┛┻━━━┛┻┓
+ *┃　　　　　　　┃
+ *┃　　　━　　　┃
+ *┃　┳┛　┗┳　┃
+ *┃　　　　　　　┃
+ *┃　　　┻　　　┃
+ *┃　　　　　　　┃
+ *┗━┓　　　┏━┛
+ *　　┃　　　┃神兽保佑
+ *　　┃　　　┃代码无BUG！
+ *　　┃　　　┗━━━┓
+ *　　┃　　　　　　　┣┓
+ *　　┃　　　　　　　┏┛
+ *　　┗┓┓┏━┳┓┏┛
+ *　　　┃┫┫　┃┫┫
+ *　　　┗┻┛　┗┻┛
+ *
+ */
+
+
+#include <iostream>
+using namespace std;
+
+
+/************Class LINKLIST Definition and Implementation ******************/
+
+template <class T>
+class linkList{
+private:
+    struct node{
+        T data;
+        node *next;
+        node(const T &x,node *n=NULL){data=x;next=n;}
+        node():data(NULL),next(NULL){};
+        ~node(){}
+    };
+    
+    node *head;
+    node *nowVisit;
+    int currentLength=0;
+    
+public:
+    linkList();
+    ~linkList(){clear();delete head;}
+    
+    void clear();
+    int length()const{return currentLength;}
+    void traverse()const;
+    void visitBegin(){  nowVisit=head;  };
+    T visitNext();
+    void push(const T &x);
+};
+
+
+template <class T>
+linkList<T>::linkList(){
+    head=new node;
+    currentLength=0;
+    nowVisit=head;
+}
+
+
+template <class T>
+void linkList<T>::clear() {
+    node *p,*q;
+    p=head->next;
+    while (p) {
+        q=p->next;
+        delete p;
+        p=q;
+    }
+    currentLength=0;
+}
+
+template <class T>
+void linkList<T>::traverse() const {
+    node *temp=head->next;
+    while (temp!=NULL) {
+        cout<<temp->data;
+        temp=temp->next;
+    }
+    cout<<endl;
+    
+}
+
+template <class T>
+T linkList<T>::visitNext() {
+    node *temp=nowVisit->next;
+    if (temp!=NULL) {
+        nowVisit=temp;
+    }
+    else{
+        nowVisit=head;
+    }
+    return temp->data;
+}
+
+template <class T>
+void linkList<T>::push(const T &x) {
+    node *temp;
+    temp=new node(x,head->next);
+    head->next=temp;
+    currentLength++;
+}
+
+
+/************Class BIGNUMBER Definition and Implementation ******************/
+
+class bigNumber{
+    friend istream & operator>>(istream &in,bigNumber &x);
+public:
+    linkList<int> data;
+    bigNumber(){};
+    void sum(bigNumber &x1,bigNumber &x2);
+};
+
+
+void bigNumber::sum(bigNumber &x1, bigNumber &x2){
+    int maxLength,aLength,bLength;
+    aLength=x1.data.length();
+    bLength=x2.data.length();
+    maxLength=max(aLength,bLength);
+    
+    int a,b,c,s;
+    a=b=c=s=0;
+    int i=1;
+    for (i=1; i<=maxLength; i++) {
+        if (i<=aLength) {
+            a=x1.data.visitNext();
+        }
+        else{
+            a=0;
+        }
+        
+        if (i<=bLength) {
+            b=x2.data.visitNext();
+        }
+        else{
+            b=0;
+        }
+        
+        s=a+b+c;
+        c=0;
+        if (s>=10) {
+            s-=10;
+            c=1;
+        }
+        data.push(s);
+        
+    }
+    if (c>0) {
+        data.push(1);
+    }
+}
+
+istream & operator>>(istream &in,bigNumber &x){
+    char temp[1000000];
+    in.getline(temp, 1000000);
+    x.data.clear();
+    
+    char *p=temp;
+    char tempChar;
+    while (*p!=NULL) {
+        tempChar=p[0];
+        x.data.push(tempChar-'0');
+        p++;
+    }
+    return in;
+}
+
+
+
+/*******************MAIN ******************/
+
+int main(int argc, const char * argv[]) {
+    // insert code here...
+    bigNumber num1,num2,num3;
+    
+    cin>>num1;
+    cin>>num2;
+    num3.sum(num1, num2);
+    num3.data.traverse();
+    
+    return 0;
+}
+
+
+//                            _ooOoo_
+//                           o8888888o
+//                           88" . "88
+//                           (| -_- |)
+//                            O\ = /O
+//                        ____/`---'\____
+//                      .   ' \\| |// `.
+//                       / \\||| : |||// \
+//                     / _||||| -:- |||||- \
+//                       | | \\\ - /// | |
+//                     | \_| ''\---/'' | |
+//                      \ .-\__ `-` ___/-. /
+//                   ___`. .' /--.--\ `. . __
+//                ."" '< `.___\_<|>_/___.' >'"".
+//               | | : `- \`.;`\ _ /`;.`/ - ` : | |
+//                 \ \ `-. \_ __\ /__ _/ .-` / /
+//         ======`-.____`-.___\_____/___.-`____.-'======
+//                            `=---='
+//
+//         .............................................
+//                  佛祖保佑             永无BUG
+//          佛曰:
+//                  写字楼里写字间，写字间里程序员；
+//                  程序人员写程序，又拿程序换酒钱。
+//                  酒醒只在网上坐，酒醉还来网下眠；
+//                  酒醉酒醒日复日，网上网下年复年。
+//                  但愿老死电脑间，不愿鞠躬老板前；
+//                  奔驰宝马贵者趣，公交自行程序员。
+//                  别人笑我忒疯癫，我笑自己命太贱；
+//                  不见满街漂亮妹，哪个归得程序员？
+
+
+
